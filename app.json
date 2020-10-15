@@ -1,6 +1,6 @@
 {
   "id": "3a749a13-9b7a-4411-aedc-3f2ff27b57d2",
-  "name": "Landed Cost",
+  "name": "EM-Landed Cost",
   "publisher": "Sci-Net Ltd",
   "version": "1.0.0.0",
   "brief": "",
@@ -22,10 +22,16 @@
       "version": "16.0.0.0"
     },
     {
+      "id": "3975fdd6-283e-46ca-9510-cf665a9a9853",
+      "publisher": "Sci-Net Ltd",
+      "name": "EM-BaseApp",
+      "version": "16.5.15953.0"
+    },
+    {
       "id": "20a33132-2f7a-474c-929f-104ea80c2709",
+      "publisher": "Sci-Net Ltd",
       "name": "Container",
-      "version": "1.0.0.0",
-      "publisher": "Sci-Net Ltd"
+      "version": "1.0.0.0"      
     }
   ],
   "idRanges": [

@@ -6,3 +6,4 @@ LandedCost, 15/10/2020
 --Eaglemoss Specific, added dependency on EM-Base APP
 LandedCost, 21/10/2020
 --Bug fix on PageID:66002-"Landed Cost Matrix"
+--Bug fix on codeunit 66000 "Landed Cost Mgt."

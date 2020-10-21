@@ -2,7 +2,7 @@ page 66002 "Landed Cost Matrix"
 {
 
     ApplicationArea = All;
-    Caption = 'Landed Costw Matrix';
+    Caption = 'Landed Cost Matrix';
     PageType = List;
     SourceTable = "Landed Cost Matrix";
     UsageCategory = Lists;

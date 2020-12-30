@@ -1,3 +1,25 @@
+/*
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "al",
+            "request": "launch",
+            "name": "EaglemossLive",
+            "server": "http://52.142.165.215",
+            "serverInstance": "EAG-LIVE",
+            "authentication": "UserPassword",
+            "breakOnError": true,
+            "launchBrowser": true,
+            "enableLongRunningSqlStatements": true,
+            "enableSqlInformationDebugger": true,
+            "tenant": "default",
+            "port": 7149,
+            "schemaUpdateMode": "ForceSync"
+        }
+    ]
+}
+*/
 
 {
     "version": "0.2.0",

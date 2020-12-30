@@ -48,8 +48,7 @@ codeunit 66000 "Landed Cost Mgt."
         ItemCharge.SetCurrentKey("Matrix Line Type", "Landed Cost Calc. Type", "No.");
         ItemCharge.SetFilter("Landed Cost Calc. Type", '<>%1', ItemCharge."Landed Cost Calc. Type"::" ");
         ItemCharge.SetRange("Matrix Line Type", ItemCharge."Matrix Line Type"::Purchase);
-
-        if not ItemCharge.FindSet then
+        if not ItemCharge.FindSet(false, false) then
             exit;
         with ItemCharge do begin
             repeat
@@ -67,99 +66,98 @@ codeunit 66000 "Landed Cost Mgt."
         CheckLandedCostMatrix: Record "Landed Cost Matrix";
         ItemRec: Record Item;
     begin
-        CheckLandedCostMatrix.Reset;
         MatchedCostMatrix.Reset;
-
         MatchedCostMatrix.SetRange("Landed Cost Calc. Type", pItemCharge."Landed Cost Calc. Type");
         MatchedCostMatrix.SetRange("Matrix Line Type", pItemCharge."Matrix Line Type");
+        if not MatchedCostMatrix.FindSet(false, false) then
+            exit(false);
 
+        CheckLandedCostMatrix.Reset;
         CheckLandedCostMatrix.SetRange("Landed Cost Calc. Type", pItemCharge."Landed Cost Calc. Type");
         CheckLandedCostMatrix.SetRange("Matrix Line Type", pItemCharge."Matrix Line Type");
 
         ItemRec.Get(pPurchLine."No.");
-
-        if MatchedCostMatrix.FindSet then begin
-
-            if ItemRec."Tariff No." <> '' then begin
-                CheckLandedCostMatrix.SetRange("Tariff/Commodity Code", ItemRec."Tariff No.");
-                if CheckLandedCostMatrix.IsEmpty then
-                    MatchedCostMatrix.SetFilter("Tariff/Commodity Code", '%1', '')
-                else
-                    MatchedCostMatrix.SetRange("Tariff/Commodity Code", ItemRec."Tariff No.");
-            end else
-                MatchedCostMatrix.SetFilter("Tariff/Commodity Code", '%1', '');
-            CheckLandedCostMatrix.SetRange("Tariff/Commodity Code");
-
-            if ItemRec."Item Category Code" <> '' then begin
-                CheckLandedCostMatrix.SetRange("Item Category Code", ItemRec."Item Category Code");
-                if CheckLandedCostMatrix.IsEmpty then
-                    MatchedCostMatrix.SetFilter("Item Category Code", '%1', '')
-                else
-                    MatchedCostMatrix.SetRange("Item Category Code", ItemRec."Item Category Code");
-            end else
-                MatchedCostMatrix.SetFilter("Item Category Code", '%1', '');
-            CheckLandedCostMatrix.SetRange("Item Category Code");
-
-            CheckLandedCostMatrix.SetRange("Item No.", pPurchLine."No.");
-            if CheckLandedCostMatrix.IsEmpty then
-                MatchedCostMatrix.SetFilter("Item No.", '%1', '')
-            else
-                MatchedCostMatrix.SetRange("Item No.", pPurchLine."No.");
-            if MatchedCostMatrix.IsEmpty then
-                MatchedCostMatrix.SetFilter("Item No.", '%1', '');
-            CheckLandedCostMatrix.SetRange("Item No.");
-
-            CheckLandedCostMatrix.SetRange("Vendor No.", pPurchLine."Buy-from Vendor No.");
-            if CheckLandedCostMatrix.IsEmpty then
-                MatchedCostMatrix.SetFilter("Vendor No.", '%1', '')
-            else
-                MatchedCostMatrix.SetRange("Vendor No.", pPurchLine."Buy-from Vendor No.");
-            if MatchedCostMatrix.IsEmpty then
-                MatchedCostMatrix.SetFilter("Vendor No.", '%1', '');
-            CheckLandedCostMatrix.SetRange("Vendor No.");
-
-            CheckLandedCostMatrix.SetRange("Source Country", PurchaseHdr."Buy-from Country/Region Code");
-            if CheckLandedCostMatrix.IsEmpty then
-                MatchedCostMatrix.SetFilter("Source Country", '%1', '')
-            else
-                MatchedCostMatrix.SetRange("Source Country", PurchaseHdr."Buy-from Country/Region Code");
-            if MatchedCostMatrix.IsEmpty then
-                MatchedCostMatrix.SetFilter("Source Country", '%1', '');
-            CheckLandedCostMatrix.SetRange("Source Country");
-
-            CheckLandedCostMatrix.SetRange("Destination Location", pPurchLine."Location Code");
-            if CheckLandedCostMatrix.IsEmpty then
-                MatchedCostMatrix.SetFilter("Destination Location", '%1', '')
-            else
-                MatchedCostMatrix.SetRange("Destination Location", pPurchLine."Location Code");
-            if MatchedCostMatrix.IsEmpty then
-                MatchedCostMatrix.SetFilter("Destination Location", '%1', '');
-            CheckLandedCostMatrix.SetRange("Destination Location");
-
-            CheckLandedCostMatrix.SetRange("Transport Method", pPurchLine."Transport Method");
-            if CheckLandedCostMatrix.IsEmpty then
-                MatchedCostMatrix.SetFilter("Transport Method", '%1', '')
-            else
-                MatchedCostMatrix.SetRange("Transport Method", pPurchLine."Transport Method");
-            if MatchedCostMatrix.IsEmpty then
-                MatchedCostMatrix.SetFilter("Transport Method", '%1', '');
-            CheckLandedCostMatrix.SetRange("Transport Method");
-
-            CheckLandedCostMatrix.SetRange("Global Dimension 2 Code", pPurchLine."Shortcut Dimension 2 Code");
-            if CheckLandedCostMatrix.IsEmpty then
-                MatchedCostMatrix.SetFilter("Global Dimension 2 Code", '%1', '')
-            else
-                MatchedCostMatrix.SetRange("Global Dimension 2 Code", pPurchLine."Shortcut Dimension 2 Code");
-            if MatchedCostMatrix.IsEmpty then
-                MatchedCostMatrix.SetFilter("Global Dimension 2 Code", '%1', '');
-            CheckLandedCostMatrix.SetRange("Global Dimension 2 Code");
-
-            if MatchedCostMatrix.FindLast then
-                exit(true)
-            else
-                exit(false);
-        end else
+        if ItemRec.Type <> ItemRec.Type::Inventory then
             exit(false);
+
+        if ItemRec."Tariff No." <> '' then begin
+            CheckLandedCostMatrix.SetRange("Tariff/Commodity Code", ItemRec."Tariff No.");
+            if CheckLandedCostMatrix.IsEmpty then
+                MatchedCostMatrix.SetFilter("Tariff/Commodity Code", '%1', '')
+            else
+                MatchedCostMatrix.SetRange("Tariff/Commodity Code", ItemRec."Tariff No.");
+        end else
+            MatchedCostMatrix.SetFilter("Tariff/Commodity Code", '%1', '');
+        CheckLandedCostMatrix.SetRange("Tariff/Commodity Code");
+
+        if ItemRec."Item Category Code" <> '' then begin
+            CheckLandedCostMatrix.SetRange("Item Category Code", ItemRec."Item Category Code");
+            if CheckLandedCostMatrix.IsEmpty then
+                MatchedCostMatrix.SetFilter("Item Category Code", '%1', '')
+            else
+                MatchedCostMatrix.SetRange("Item Category Code", ItemRec."Item Category Code");
+        end else
+            MatchedCostMatrix.SetFilter("Item Category Code", '%1', '');
+        CheckLandedCostMatrix.SetRange("Item Category Code");
+
+        CheckLandedCostMatrix.SetRange("Item No.", pPurchLine."No.");
+        if CheckLandedCostMatrix.IsEmpty then
+            MatchedCostMatrix.SetFilter("Item No.", '%1', '')
+        else
+            MatchedCostMatrix.SetRange("Item No.", pPurchLine."No.");
+        if MatchedCostMatrix.IsEmpty then
+            MatchedCostMatrix.SetFilter("Item No.", '%1', '');
+        CheckLandedCostMatrix.SetRange("Item No.");
+
+        CheckLandedCostMatrix.SetRange("Vendor No.", pPurchLine."Buy-from Vendor No.");
+        if CheckLandedCostMatrix.IsEmpty then
+            MatchedCostMatrix.SetFilter("Vendor No.", '%1', '')
+        else
+            MatchedCostMatrix.SetRange("Vendor No.", pPurchLine."Buy-from Vendor No.");
+        if MatchedCostMatrix.IsEmpty then
+            MatchedCostMatrix.SetFilter("Vendor No.", '%1', '');
+        CheckLandedCostMatrix.SetRange("Vendor No.");
+
+        CheckLandedCostMatrix.SetRange("Source Country", PurchaseHdr."Buy-from Country/Region Code");
+        if CheckLandedCostMatrix.IsEmpty then
+            MatchedCostMatrix.SetFilter("Source Country", '%1', '')
+        else
+            MatchedCostMatrix.SetRange("Source Country", PurchaseHdr."Buy-from Country/Region Code");
+        if MatchedCostMatrix.IsEmpty then
+            MatchedCostMatrix.SetFilter("Source Country", '%1', '');
+        CheckLandedCostMatrix.SetRange("Source Country");
+
+        CheckLandedCostMatrix.SetRange("Destination Location", pPurchLine."Location Code");
+        if CheckLandedCostMatrix.IsEmpty then
+            MatchedCostMatrix.SetFilter("Destination Location", '%1', '')
+        else
+            MatchedCostMatrix.SetRange("Destination Location", pPurchLine."Location Code");
+        if MatchedCostMatrix.IsEmpty then
+            MatchedCostMatrix.SetFilter("Destination Location", '%1', '');
+        CheckLandedCostMatrix.SetRange("Destination Location");
+
+        CheckLandedCostMatrix.SetRange("Transport Method", pPurchLine."Transport Method");
+        if CheckLandedCostMatrix.IsEmpty then
+            MatchedCostMatrix.SetFilter("Transport Method", '%1', '')
+        else
+            MatchedCostMatrix.SetRange("Transport Method", pPurchLine."Transport Method");
+        if MatchedCostMatrix.IsEmpty then
+            MatchedCostMatrix.SetFilter("Transport Method", '%1', '');
+        CheckLandedCostMatrix.SetRange("Transport Method");
+
+        CheckLandedCostMatrix.SetRange("Global Dimension 2 Code", pPurchLine."Shortcut Dimension 2 Code");
+        if CheckLandedCostMatrix.IsEmpty then
+            MatchedCostMatrix.SetFilter("Global Dimension 2 Code", '%1', '')
+        else
+            MatchedCostMatrix.SetRange("Global Dimension 2 Code", pPurchLine."Shortcut Dimension 2 Code");
+        if MatchedCostMatrix.IsEmpty then
+            MatchedCostMatrix.SetFilter("Global Dimension 2 Code", '%1', '');
+        CheckLandedCostMatrix.SetRange("Global Dimension 2 Code");
+
+        If MatchedCostMatrix.Findlast() then
+            Exit(true)
+        else
+            Exit(false);
     end;
 
     local procedure UpdateLandedCostLine(CostMatrix: Record "Landed Cost Matrix"; pPurchLine: Record "Purchase Line"; pItemCharge: Record "Item Charge")
@@ -179,7 +177,7 @@ codeunit 66000 "Landed Cost Mgt."
             FreightCostLine.SetRange("Document No.", pPurchLine."Document No.");
             FreightCostLine.SetRange("Document Line No.", pPurchLine."Line No.");
             FreightCostLine.SetRange("Landed Cost Calc. Type", FreightCostLine."Landed Cost Calc. Type"::Freight);
-            if FreightCostLine.FindSet then
+            if FreightCostLine.FindSet(False, False) then
                 repeat
                     AdjPurchLineAmountLCY := AdjPurchLineAmountLCY + FreightCostLine."Amount (LCY)";
                 until FreightCostLine.Next = 0;
@@ -218,7 +216,7 @@ codeunit 66000 "Landed Cost Mgt."
                 UpdLandedCostLine.Validate("Unit Cost (LCY)", 0);
             end;
         end;
-        UpdLandedCostLine.Insert;
+        UpdLandedCostLine.Insert(true);
 
     end;
 
@@ -305,12 +303,12 @@ codeunit 66000 "Landed Cost Mgt."
     var
         CostLinestoDelete: Record "Landed Cost Lines";
     begin
-        CostLinestoDelete.Init;
+        CostLinestoDelete.Reset; //was CostLinestoDelete.Init //Alexnir.R 30/12/2020
         CostLinestoDelete.SetRange("Document Type", pPurchLine."Document Type");
         CostLinestoDelete.SetRange("Document No.", pPurchLine."Document No.");
         CostLinestoDelete.SetRange("Document Line No.", pPurchLine."Line No.");
         CostLinestoDelete.SetRange("Matrix Line Type", CostLinestoDelete."Matrix Line Type"::Purchase);
-        if CostLinestoDelete.FindSet then
+        if CostLinestoDelete.FindSet(true, true) then
             CostLinestoDelete.DeleteAll;
     end;
 
@@ -353,20 +351,18 @@ codeunit 66000 "Landed Cost Mgt."
         CheckLandedCostMatrix: Record "Landed Cost Matrix";
         ItemRec: Record Item;
     begin
-        //Doc LC1.0 MF 04.03.18 - Introduce new sales type landed cost recharge mechanism
-
-        CheckLandedCostMatrix.Reset;
+        //Doc LC1.0 MF 04.03.18 - Introduce new sales type landed cost recharge mechanism       
         MatchedCostMatrix.Reset;
-
         MatchedCostMatrix.SetRange("Landed Cost Calc. Type", pItemCharge."Landed Cost Calc. Type");
         MatchedCostMatrix.SetRange("Matrix Line Type", pItemCharge."Matrix Line Type");
 
+        CheckLandedCostMatrix.Reset;
         CheckLandedCostMatrix.SetRange("Landed Cost Calc. Type", pItemCharge."Landed Cost Calc. Type");
         CheckLandedCostMatrix.SetRange("Matrix Line Type", pItemCharge."Matrix Line Type");
 
         ItemRec.Get(pSalesLine."No.");
 
-        if MatchedCostMatrix.FindSet then begin
+        if MatchedCostMatrix.FindSet(false, false) then begin
 
             if ItemRec."Tariff No." <> '' then begin
                 CheckLandedCostMatrix.SetRange("Tariff/Commodity Code", ItemRec."Tariff No.");
@@ -953,8 +949,8 @@ codeunit 66000 "Landed Cost Mgt."
         ContainerItemCharge: Record "Container Item Charge";
         ContainerLandedCostReview: Page "Container Item Charges";
     begin
-
         Clear(ContainerLandedCostReview);
+        ItemCharge.reset;
         ItemCharge.SetRange("Matrix Line Type", ItemCharge."Matrix Line Type"::" ");
         ItemCharge.SetFilter("Landed Cost Calc. Type", '>%1', 0);
         if ItemCharge.FindSet then
@@ -1102,6 +1098,7 @@ codeunit 66000 "Landed Cost Mgt."
     begin
 
         Clear(LandedCostLinesPage);
+        LandedCostLines.reset;
         LandedCostLines.SetRange("Document Type", Rec."Document Type");
         LandedCostLines.SetRange("Document No.", Rec."Document No.");
         LandedCostLines.SetRange("Document Line No.", Rec."Line No.");

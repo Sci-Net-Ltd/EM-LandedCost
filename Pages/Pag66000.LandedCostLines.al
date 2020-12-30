@@ -1,6 +1,5 @@
 page 66000 "Landed Cost Lines"
 {
-
     ApplicationArea = All;
     Caption = 'Landed Cost Lines';
     PageType = List;

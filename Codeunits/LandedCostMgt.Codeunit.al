@@ -205,7 +205,8 @@ codeunit 66000 "Landed Cost Mgt."
             //Amount per qty on line
             UpdLandedCostLine."Unit Cost (LCY)" := CostMatrix.Value;
             UpdLandedCostLine."Amount (LCY)" := Round(pPurchLine.Quantity * CostMatrix.Value);
-        end else begin
+        end;
+        if CostMatrix."Value Type" = CostMatrix."Value Type"::Percentage then begin
             //% Value of line
             if pPurchLine.Quantity <> 0 then begin
                 UpdLandedCostLine."Amount (LCY)" := ((pPurchLine.Amount / UpdLandedCostLine."Currency Factor") + AdjPurchLineAmountLCY) * (CostMatrix.Value / 100);
@@ -216,6 +217,12 @@ codeunit 66000 "Landed Cost Mgt."
                 UpdLandedCostLine.Validate("Unit Cost (LCY)", 0);
             end;
         end;
+        //Alexnir.SN
+        if CostMatrix."Value Type" = CostMatrix."Value Type"::"Fixed Amount" then begin
+            UpdLandedCostLine."Unit Cost (LCY)" := CostMatrix.Value;
+            UpdLandedCostLine."Amount (LCY)" := Round(CostMatrix.Value / pPurchLine.Quantity);
+        end;
+        //Alexnir.EN
         UpdLandedCostLine.Insert(true);
 
     end;
@@ -470,12 +477,19 @@ codeunit 66000 "Landed Cost Mgt."
             //Amount per qty on line
             UpdLandedCostLine."Unit Cost (LCY)" := CostMatrix.Value;
             UpdLandedCostLine."Amount (LCY)" := Round(pSalesLine.Quantity * CostMatrix.Value);
-        end else begin
+        end;
+        if CostMatrix."Value Type" = CostMatrix."Value Type"::Percentage then begin
             //% Value of line
             UpdLandedCostLine."Amount (LCY)" := (pSalesLine.Amount * (CostMatrix.Value / 100)) / UpdLandedCostLine."Currency Factor";
             UpdLandedCostLine.Validate("Amount (LCY)", Round(UpdLandedCostLine."Amount (LCY)"));
             UpdLandedCostLine.Validate("Unit Cost (LCY)", UpdLandedCostLine."Amount (LCY)" / pSalesLine.Quantity);
         end;
+        //Alexnir.SN
+        if CostMatrix."Value Type" = CostMatrix."Value Type"::"Fixed Amount" then begin
+            UpdLandedCostLine."Unit Cost (LCY)" := CostMatrix.Value;
+            UpdLandedCostLine."Amount (LCY)" := Round(CostMatrix.Value / pSalesLine.Quantity);
+        end;
+        //Alexnir.EN        
         UpdLandedCostLine.Insert;
     end;
 
@@ -1190,7 +1204,7 @@ codeunit 66000 "Landed Cost Mgt."
                 pLandedCostLine.SetRange("Document Type", pLandedCostLine."Document Type"::Order);
                 pLandedCostLine.SetRange("Document No.", PurchaseHeader."No.");
                 pLandedCostLine.SetRange("Document Line No.", PurchRcptLine."Line No.");
-                if pLandedCostLine.Find('-') then
+                if pLandedCostLine.FindSet(False, False) then
                     repeat
                         ItemJnlLine2.Init;
                         ItemJnlLine2."Item No." := PurchRcptLine."No.";
@@ -1277,7 +1291,7 @@ codeunit 66000 "Landed Cost Mgt."
                 pLandedCostLine.SetRange("Document Type", pLandedCostLine."Document Type"::Order);
                 pLandedCostLine.SetRange("Document No.", PurchHeader."No.");
                 pLandedCostLine.SetRange("Document Line No.", PurchRcptLine."Line No.");
-                if pLandedCostLine.Find('-') then
+                if pLandedCostLine.FindSet(False, False) then
                     repeat
                         ItemJnlLine2.Init;
                         ItemJnlLine2."Item No." := PurchRcptLine."No.";
@@ -1370,7 +1384,7 @@ codeunit 66000 "Landed Cost Mgt."
         pLandedCostLine.SetRange("Document Type", pLandedCostLine."Document Type"::Order);
         pLandedCostLine.SetRange("Document No.", PurchaseLine."Document No.");
         pLandedCostLine.SetRange("Document Line No.", PurchaseLine."Line No.");
-        if pLandedCostLine.Find('-') then
+        if pLandedCostLine.FindSet(false, false) then
             repeat
                 ItemJnlLine2.Init;
                 ItemJnlLine2."Item No." := PurchaseLine."No.";

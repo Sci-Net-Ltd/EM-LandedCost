@@ -67,11 +67,17 @@ table 66002 "Landed Cost Matrix"
         }
         field(200; "Value Type"; Option)
         {
-            OptionMembers = Percentage,Amount;
+            OptionMembers = Percentage,Amount,"Fixed Amount";
+            OptionCaption = 'Percentage,Amount,Fixed Amount';
         }
         field(210; Value; Decimal)
         {
             DecimalPlaces = 0 : 5;
+            trigger OnValidate()
+            begin
+                if Value <> 0 then
+                    CheckFields();
+            end;
         }
     }
 
@@ -89,5 +95,28 @@ table 66002 "Landed Cost Matrix"
     fieldgroups
     {
     }
+
+    local procedure CheckFields()
+    begin
+        if ("Transport Method" = '') and
+           ("Destination Location" = '') and
+           ("Source Country" = '') and
+           ("Vendor No." = '') and
+           ("Customer No." = '') and
+           ("Item Category Code" = '') and
+           ("Global Dimension 2 Code" = '') and
+           ("Item No." = '') and
+           ("Tariff/Commodity Code" = '') and
+           (Value <> 0) then
+            error('Please provide at least a %1 %2 %3 %4 %5 %6 %7 %8 %9', Rec.FieldCaption("Transport Method"),
+                  Rec.FieldCaption("Destination Location"),
+                  Rec.FieldCaption("Source Country"),
+                  Rec.FieldCaption("Vendor No."),
+                  Rec.FieldCaption("Customer No."),
+                  Rec.FieldCaption("Item Category Code"),
+                  Rec.FieldCaption("Global Dimension 2 Code"),
+                  Rec.FieldCaption("Item No."),
+                  Rec.FieldCaption("Tariff/Commodity Code"));
+    end;
 }
 

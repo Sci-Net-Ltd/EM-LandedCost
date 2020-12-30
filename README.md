@@ -10,3 +10,6 @@ LandedCost, 21/10/2020
 --Update/recompile the extension as the version of the BaseApp has been restructured.
 LandedCost, 30/12/2020
 --Refactoring and fixing code in codeunit 66000 "Landed Cost Mgt."
+--page 66002 "Landed Cost Matrix" changes to hide the Box and Brand columns
+--Add new option to table 66002 "Landed Cost Matrix", on field "Matrix Line Type" for "Fixed Amount"
+--Add support for the new option in codeunit codeunit 66000 "Landed Cost Mgt."

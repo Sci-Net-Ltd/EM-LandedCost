@@ -69,6 +69,7 @@ page 66002 "Landed Cost Matrix"
                 field(Boxed; Rec.Boxed)
                 {
                     ApplicationArea = All;
+                    Visible = False;
                 }
                 field("Matrix Line Type"; Rec."Matrix Line Type")
                 {
@@ -77,6 +78,7 @@ page 66002 "Landed Cost Matrix"
                 field("Brand Code"; Rec."Brand Code")
                 {
                     ApplicationArea = All;
+                    Visible = False;
                 }
             }
         }

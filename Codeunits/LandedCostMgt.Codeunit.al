@@ -20,7 +20,7 @@ codeunit 66000 "Landed Cost Mgt."
         GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line";
         QX001: Label 'No Sales Recharge entries exist for this Shipment No. %1 to be reversed.';
         GlobalItemJnlLine: Record "Item Journal Line" temporary;
-        QX002: Label 'Please assign a Landed Cost Calc. type to the Item Charge before attempting to set up the landed cost matrix.';
+        QX002: Label 'Please assign %1 to the Item Charge before attempting to set up the landed cost matrix.';
         TempPurchLine: Record "Purchase Line" temporary;
         SingleInstanceVar: Codeunit "Single Instance Variables";
         SystemSetup: Record "System Setup";
@@ -1147,8 +1147,11 @@ codeunit 66000 "Landed Cost Mgt."
         LandedCostMatrix: Record "Landed Cost Matrix";
     begin
         if Rec."Landed Cost Calc. Type" = Rec."Landed Cost Calc. Type"::" " then
-            Error(QX002);
-
+            Error(QX002, Rec.FieldCaption("Landed Cost Calc. Type"));
+        //Alexnir.SN
+        if Rec."Matrix Line Type" = Rec."Matrix Line Type"::" " then
+            Error(QX002, Rec.FieldCaption("Matrix Line Type"));
+        //Alexnir.EN
         Clear(LandedCostMatrix);
         LandedCostMatrix.SetRange("Landed Cost Calc. Type", Rec."Landed Cost Calc. Type");
         LandedCostMatrix.SetRange("Matrix Line Type", Rec."Matrix Line Type");

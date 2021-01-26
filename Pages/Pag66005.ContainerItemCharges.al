@@ -1,11 +1,9 @@
 page 66005 "Container Item Charges"
 {
-
-    ApplicationArea = All;
     Caption = 'Container Item Charges';
     PageType = List;
     SourceTable = "Container Item Charge";
-    UsageCategory = Lists;
+    UsageCategory = None;
 
     layout
     {

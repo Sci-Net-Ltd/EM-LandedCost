@@ -15,3 +15,6 @@ LandedCost, 30/12/2020
 --Add support for the new option in codeunit codeunit 66000 "Landed Cost Mgt."
 LandedCost, 25/01/2021
 --Add check for the field "Matrix Line Type" to be <> empty in [EventSubscriber(ObjectType::Page, Page::"Item Charges", 'OnAfterActionEvent', 'Setup Landed Cost Matrix', false, false)] in codeunit 66000 "Landed Cost Mgt.".
+LandedCost, 26/01/2021
+--Change on page 66005 "Container Item Charges", property UsageCategory to None. Hide it from global search.
+--Add new page extension 66004 ContainerCardExt extends "Container Card" and new action to open "Container Item Charges".

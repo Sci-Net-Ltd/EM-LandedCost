@@ -205,6 +205,7 @@ codeunit 66000 "Landed Cost Mgt."
             //Amount per qty on line
             UpdLandedCostLine."Unit Cost (LCY)" := CostMatrix.Value;
             UpdLandedCostLine."Amount (LCY)" := Round(pPurchLine.Quantity * CostMatrix.Value);
+            UpdLandedCostLine."Unit Cost" := ConvertCurrency(UpdLandedCostLine."Currency Code", UpdLandedCostLine."Unit Cost (LCY)", UpdLandedCostLine."Currency Factor");
         end;
         if CostMatrix."Value Type" = CostMatrix."Value Type"::Percentage then begin
             //% Value of line
@@ -219,8 +220,14 @@ codeunit 66000 "Landed Cost Mgt."
         end;
         //Alexnir.SN
         if CostMatrix."Value Type" = CostMatrix."Value Type"::"Fixed Amount" then begin
-            UpdLandedCostLine."Unit Cost (LCY)" := CostMatrix.Value;
-            UpdLandedCostLine."Amount (LCY)" := Round(CostMatrix.Value / pPurchLine.Quantity);
+            if pPurchLine.Quantity <> 0 then begin
+                UpdLandedCostLine."Unit Cost (LCY)" := CostMatrix.Value;
+                UpdLandedCostLine."Amount (LCY)" := Round(CostMatrix.Value / pPurchLine.Quantity);
+                UpdLandedCostLine."Unit Cost" := ConvertCurrency(UpdLandedCostLine."Currency Code", UpdLandedCostLine."Unit Cost (LCY)", UpdLandedCostLine."Currency Factor");
+            end else begin
+                UpdLandedCostLine.Validate("Amount (LCY)", 0);
+                UpdLandedCostLine.Validate("Unit Cost (LCY)", 0);
+            end;
         end;
         //Alexnir.EN
         UpdLandedCostLine.Insert(true);
@@ -239,6 +246,7 @@ codeunit 66000 "Landed Cost Mgt."
                 PurchLine."Post Landed Cost Accrual" := true
             else
                 PurchLine."Post Landed Cost Accrual" := false;
+
             PurchHeader.Get("Document Type", "Document No.");
             Currency2.InitRoundingPrecision;
             if "VAT Calculation Type" = "VAT Calculation Type"::"Full VAT" then
@@ -275,7 +283,8 @@ codeunit 66000 "Landed Cost Mgt."
             CalcFields("Det. Landed Cost (LCY)");
             //bug fix. During the deletion of a line
             //std system empties the Quantity field prior to the code below and that causes an division by zero error
-            if ("Outstanding Quantity" <> 0) and (Quantity <> 0) then
+            //if ("Outstanding Quantity" <> 0) and (Quantity <> 0) then
+            if ("Outstanding Quantity" <> 0) then
                 "Landed Cost (LCY)" := Round(("Outstanding Quantity" / Quantity) * "Det. Landed Cost (LCY)", Currency2."Amount Rounding Precision")
             else
                 "Landed Cost (LCY)" := 0;
@@ -477,6 +486,7 @@ codeunit 66000 "Landed Cost Mgt."
             //Amount per qty on line
             UpdLandedCostLine."Unit Cost (LCY)" := CostMatrix.Value;
             UpdLandedCostLine."Amount (LCY)" := Round(pSalesLine.Quantity * CostMatrix.Value);
+            UpdLandedCostLine."Unit Cost" := ConvertCurrency(UpdLandedCostLine."Currency Code", UpdLandedCostLine."Unit Cost (LCY)", UpdLandedCostLine."Currency Factor");
         end;
         if CostMatrix."Value Type" = CostMatrix."Value Type"::Percentage then begin
             //% Value of line
@@ -486,8 +496,15 @@ codeunit 66000 "Landed Cost Mgt."
         end;
         //Alexnir.SN
         if CostMatrix."Value Type" = CostMatrix."Value Type"::"Fixed Amount" then begin
-            UpdLandedCostLine."Unit Cost (LCY)" := CostMatrix.Value;
-            UpdLandedCostLine."Amount (LCY)" := Round(CostMatrix.Value / pSalesLine.Quantity);
+            if pSalesLine.Quantity <> 0 then begin
+                UpdLandedCostLine."Amount (LCY)" := (pSalesLine.Amount / UpdLandedCostLine."Currency Factor") + CostMatrix.Value;
+                UpdLandedCostLine.Validate("Amount (LCY)", Round(UpdLandedCostLine."Amount (LCY)"));
+                UpdLandedCostLine.Validate("Unit Cost (LCY)", UpdLandedCostLine."Amount (LCY)" / pSalesLine.Quantity);
+                UpdLandedCostLine."Unit Cost" := ConvertCurrency(UpdLandedCostLine."Currency Code", UpdLandedCostLine."Unit Cost (LCY)", UpdLandedCostLine."Currency Factor");
+            end else begin
+                UpdLandedCostLine.Validate("Amount (LCY)", 0);
+                UpdLandedCostLine.Validate("Unit Cost (LCY)", 0);
+            end;
         end;
         //Alexnir.EN        
         UpdLandedCostLine.Insert;
@@ -1052,6 +1069,22 @@ codeunit 66000 "Landed Cost Mgt."
         end;
     end;
 
+    procedure ConvertCurrency(p_CurrentCurrencyCode: code[20]; p_UnitCostLCY: decimal; p_CurrencyFactor: decimal): decimal
+    var
+        Currency: record Currency;
+        CurrExchRate: record "Currency Exchange Rate";
+        UnitCostToExit: decimal;
+    begin
+        UnitCostToExit := 0;
+        IF p_CurrentCurrencyCode <> '' then begin
+            Currency.get(p_CurrentCurrencyCode);
+            Currency.TESTFIELD("Unit-Amount Rounding Precision");
+            p_UnitCostLCY := ROUND(CurrExchRate.ExchangeAmtLCYToFCY(WorkDate(), Currency.Code, p_UnitCostLCY, p_CurrencyFactor), Currency."Unit-Amount Rounding Precision");
+        end else
+            UnitCostToExit := p_UnitCostLCY;
+        exit(UnitCostToExit);
+    end;
+
     local procedure "##QXSubscriberFuncs"()
     begin
         //Doc EX1.0 MF 09.10.18 - Added subscriber functions for conversion to extensions
@@ -1195,7 +1228,7 @@ codeunit 66000 "Landed Cost Mgt."
         ItemCharge: Record "Item Charge";
         ItemJnlPostLine: Codeunit "Item Jnl.-Post Line";
     begin
-        exit;  //why is this exiting //alexnir
+        exit;  //why is this exiting //alexnir ----------------------SOS---------------------------
 
         PurchRcptLine.Reset;
         PurchRcptLine.SetRange("Document No.", PurchRcpHdrNo);
@@ -1381,7 +1414,7 @@ codeunit 66000 "Landed Cost Mgt."
         ItemJnlPostLine: Codeunit "Item Jnl.-Post Line";
     begin
         //Not Required - keep code in case need to re-visit performing accruals online. This code currently gives a G/L Register error.
-        exit;
+        exit; //alexnir -review
 
         pLandedCostLine.Reset;
         pLandedCostLine.SetRange("Document Type", pLandedCostLine."Document Type"::Order);
@@ -1445,7 +1478,7 @@ codeunit 66000 "Landed Cost Mgt."
     end;
 
     [EventSubscriber(ObjectType::Codeunit, 90, 'OnBeforeItemJnlPostLine', '', false, false)]
-    local procedure OnBeforeItemJnlPostLine(var ItemJournalLine: Record "Item Journal Line"; PurchaseLine: Record "Purchase Line"; PurchaseHeader: Record "Purchase Header"; CommitIsSupressed: Boolean)
+    local procedure OnBeforeItemJnlPostLineContainer(var ItemJournalLine: Record "Item Journal Line"; PurchaseLine: Record "Purchase Line"; PurchaseHeader: Record "Purchase Header"; CommitIsSupressed: Boolean)
     var
         LocPurchRcptLine: Record "Purch. Rcpt. Line";
     begin
@@ -1493,5 +1526,130 @@ codeunit 66000 "Landed Cost Mgt."
             "LC Correction" := true;
         end;
     end;
+
+
+
+
+
+
+
+
+
+
+
+    /*
+    non extension diffs --ALEXNIR-REVIEW
+
+
+        [EventSubscriber(ObjectType::Codeunit, 90, 'OnBeforeItemJnlPostLine', '', false, false)]
+        local procedure OnBeforeItemJnlPostLine(var ItemJournalLine: Record "Item Journal Line"; PurchaseLine: Record "Purchase Line"; PurchaseHeader: Record "Purchase Header"; CommitIsSupressed: Boolean; var IsHandled: Boolean; WhseReceiptHeader: Record "Warehouse Receipt Header"; WhseShipmentHeader: Record "Warehouse Shipment Header")
+        begin
+            Clear(ItemJnlLineG);
+            ItemJnlLineG := ItemJournalLine;
+        end;
+
+
+        [EventSubscriber(ObjectType::Codeunit, 90, 'OnAfterPostItemJnlLine', '', false, false)]
+        local procedure OnAfterPostItemJnlLine(var ItemJournalLine: Record "Item Journal Line"; var PurchaseLine: Record "Purchase Line"; var PurchaseHeader: Record "Purchase Header"; var ItemJnlPostLine: Codeunit "Item Jnl.-Post Line")
+        begin
+            //Doc LC1.0 MF 12.09.17 - Call new function PostItemJnlLineLCAccruals
+            IF (PurchaseLine.Type = PurchaseLine.Type::Item) AND (ItemJournalLine.quantity <> 0) THEN
+                PostItemJnlLineLCAccruals(PurchaseLine, ItemJnlLineG, ItemJournalLine."Item Shpt. Entry No.");
+        end;
+
+        local procedure PostItemJnlLineLCAccruals(PurchLine: record "Purchase Line"; var OriginalItemJnlLine: record "Item Journal Line"; ItemShptEntryNo: integer)
+        var
+            LandedCostLines: record "Landed Cost Lines";
+        begin
+            IF PurchLine.Type <> PurchLine.Type::Item THEN
+                EXIT;
+
+            LandedCostLines.RESET;
+            LandedCostLines.SETRANGE("Document Type", PurchLine."Document Type");
+            LandedCostLines.SETRANGE("Document No.", PurchLine."Document No.");
+            LandedCostLines.SETRANGE("Document Line No.", PurchLine."Line No.");
+            LandedCostLines.SETRANGE("Matrix Line Type", LandedCostLines."Matrix Line Type"::Purchase);
+            IF LandedCostLines.ISEMPTY THEN
+                EXIT;
+
+            IF LandedCostLines.FINDSET THEN
+                REPEAT
+                    PostLCAccrualPerOrder(PurchLine, OriginalItemJnlLine, LandedCostLines, ItemShptEntryNo)
+                UNTIL LandedCostLines.NEXT = 0;
+        end;
+
+        local procedure PostLCAccrualPerOrder(PurchLine: record "Purchase Line"; ItemJnlLine2: record "Item Journal Line"; pLandedCostLine: record "Landed Cost Lines"; ItemShptEntryNo: integer)
+        var
+            ItemJnlPostLine: codeunit "Item Jnl.-Post Line";
+            GLSetup: record "General Ledger Setup";
+        begin
+            //Doc LC1.0 MF 12.09.17 Added new function PostLCAccrualPerOrder
+            WITH pLandedCostLine DO BEGIN
+                GLSetup.get();
+                ItemJnlLine2."Item Charge No." := "Item Charge No.";
+                ItemJnlLine2.Description := Description;
+                ItemJnlLine2."Document Line No." := PurchLine."Line No.";
+                ItemJnlLine2."Unit of Measure Code" := '';
+                ItemJnlLine2."Qty. per Unit of Measure" := 1;
+                IF ItemJnlLine2."Invoiced Quantity" = 0 THEN BEGIN
+                    ItemJnlLine2."Invoiced Quantity" := ItemJnlLine2.Quantity;
+                    ItemJnlLine2."Invoiced Qty. (Base)" := ItemJnlLine2."Quantity (Base)";
+                END;
+                ItemJnlLine2.Quantity := 0;
+
+                ItemJnlLine2.Amount := "Unit Cost (LCY)" * ItemJnlLine2."Invoiced Qty. (Base)";
+                IF "Document Type" IN ["Document Type"::"Return Order", "Document Type"::"Credit Memo"] THEN
+                    ItemJnlLine2.Amount := -ItemJnlLine2.Amount;
+
+                ItemJnlLine2.Amount := ROUND(ItemJnlLine2.Amount);
+                ItemJnlLine2."Unit Cost" := ROUND(pLandedCostLine."Unit Cost (LCY)", GLSetup."Unit-Amount Rounding Precision");
+                ItemJnlLine2."Applies-to Entry" := ItemShptEntryNo;
+                ItemJnlLine2."Item Shpt. Entry No." := ItemShptEntryNo;
+                ItemJnlLine2."Overhead Rate" := 0;
+                ItemJnlLine2."Shortcut Dimension 1 Code" := PurchLine."Shortcut Dimension 1 Code";
+                ItemJnlLine2."Shortcut Dimension 2 Code" := PurchLine."Shortcut Dimension 2 Code";
+                ItemJnlLine2."Dimension Set ID" := PurchLine."Dimension Set ID";
+                ItemJnlLine2."Gen. Prod. Posting Group" := "Gen. Prod. Posting Group";
+                ItemJnlLine2."Landed Cost Entry" := TRUE;
+                ItemJnlLine2."Landed Cost Entry Type" := ItemJnlLine2."Landed Cost Entry Type"::Accrual;
+            END;
+            ItemJnlPostLine.RunWithCheck(ItemJnlLine2);
+        end;
+
+
+        [EventSubscriber(ObjectType::Codeunit, 90, 'OnPostItemChargePerOrderOnAfterCopyToItemJnlLine', '', false, false)]
+        local procedure OnPostItemChargePerOrderOnAfterCopyToItemJnlLine(var ItemJournalLine: Record "Item Journal Line"; var PurchaseLine: Record "Purchase Line"; GeneralLedgerSetup: Record "General Ledger Setup"; QtyToInvoice: Decimal; var TempItemChargeAssignmentPurch: Record "Item Charge Assignment (Purch)" temporary)
+        begin
+            //Doc LC1.0 MF 15.09.17 - Update Landed cost related flags on item jnl line if charge assignment relates to a landed cost charge item
+            ItemJournalLine."Landed Cost Entry" := TempItemChargeAssignmentPurch."Landed Cost";
+            IF ItemJournalLine."Landed Cost Entry" THEN
+                ItemJournalLine."Landed Cost Entry Type" := ItemJournalLine."Landed Cost Entry Type"::Actual;
+            //Doc LC1.0 MF 15.09.17 +
+        end;
+
+
+        [EventSubscriber(ObjectType::Codeunit, 90, 'OnPostItemChargeOnBeforePostItemJnlLine', '', false, false)]
+        local procedure OnPostItemChargeOnBeforePostItemJnlLine(var PurchaseLineToPost: Record "Purchase Line"; var PurchaseLine: Record "Purchase Line"; QtyToAssign: Decimal; var TempItemChargeAssgntPurch: Record "Item Charge Assignment (Purch)" temporary)
+        begin
+            //Doc LC1.0 MF 15.09.17 Update LC fields if relevant on Actuals posting of LC type item charge assignment
+            PurchaseLineToPost."Container No." := TempItemChargeAssgntPurch."Container No.";
+        end;
+
+
+        [EventSubscriber(ObjectType::Codeunit, 90, 'OnPostItemChargeLineOnBeforePostItemCharge', '', false, false)]
+        local procedure OnPostItemChargeLineOnBeforePostItemCharge(var TempItemChargeAssgntPurch: record "Item Charge Assignment (Purch)" temporary; PurchHeader: Record "Purchase Header"; PurchLine: Record "Purchase Line")
+        begin
+            if TempItemChargeAssgntPurch."Applies-to Doc. Type" <> TempItemChargeAssgntPurch."Applies-to Doc. Type"::Receipt then
+                exit;
+
+
+        end;
+
+
+        var
+            ItemJnlLineG: record "Item Journal Line";
+
+
+    */
 }
 

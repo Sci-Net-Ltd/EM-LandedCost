@@ -66,6 +66,11 @@ page 66002 "Landed Cost Matrix"
                 {
                     ApplicationArea = All;
                 }
+                field("Currency Code"; Rec."Currency Code")
+                {
+                    ApplicationArea = All;
+                    Enabled = ValueTypeEligable;
+                }
                 field(Boxed; Rec.Boxed)
                 {
                     ApplicationArea = All;
@@ -84,4 +89,11 @@ page 66002 "Landed Cost Matrix"
         }
     }
 
+    trigger OnAfterGetRecord()
+    begin
+        ValueTypeEligable := not (Rec."Value Type" = "Value Type"::Percentage);
+    end;
+
+    var
+        ValueTypeEligable: Boolean;
 }

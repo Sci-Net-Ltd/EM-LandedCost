@@ -79,6 +79,12 @@ table 66002 "Landed Cost Matrix"
                     CheckFields();
             end;
         }
+        field(220; "Currency Code"; code[20])
+        {
+            Caption = 'Currency Code';
+            TableRelation = Currency;
+            ValidateTableRelation = false;
+        }
     }
 
     keys

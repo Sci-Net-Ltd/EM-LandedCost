@@ -18,3 +18,8 @@ LandedCost, 25/01/2021
 LandedCost, 26/01/2021
 --Change on page 66005 "Container Item Charges", property UsageCategory to None. Hide it from global search.
 --Add new page extension 66004 ContainerCardExt extends "Container Card" and new action to open "Container Item Charges".
+LandedCost, 15/01/2021 - 17/01/2021
+--Several changes and bug fixing with Tim. No time to document.
+--Add function ConvertCurrency() to convert between currencies in codeunit 66000 "Landed Cost Mgt."
+--Add new field for Currency Code in table 66002 "Landed Cost Matrix".
+--Add new field in page 66002 "Landed Cost Matrix" and enabled only if not Value Type = Percentage.

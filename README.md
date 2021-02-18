@@ -23,3 +23,5 @@ LandedCost, 15/01/2021 - 17/01/2021
 --Add function ConvertCurrency() to convert between currencies in codeunit 66000 "Landed Cost Mgt."
 --Add new field for Currency Code in table 66002 "Landed Cost Matrix".
 --Add new field in page 66002 "Landed Cost Matrix" and enabled only if not Value Type = Percentage.
+LandedCost, 18/01/2021
+--Fix to show the breakdown of the landed cost in purchase order lines, in the correct currency/conversion.

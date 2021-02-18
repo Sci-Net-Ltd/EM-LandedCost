@@ -196,7 +196,10 @@ codeunit 66000 "Landed Cost Mgt."
         UpdLandedCostLine.Validate("Variant Code", pPurchLine."Variant Code");
         UpdLandedCostLine.Description := pItemCharge.Description;
         UpdLandedCostLine.Validate("Value Type", CostMatrix."Value Type");
-        UpdLandedCostLine.Validate(Value, CostMatrix.Value);
+        if pPurchLine."Currency Code" = CostMatrix."Currency Code" then
+            UpdLandedCostLine.Validate(Value, CostMatrix.Value)
+        else
+            UpdLandedCostLine.Validate(Value, ConvertCurrency(pPurchLine."Currency Code", CostMatrix.Value, PurchaseHdr."Currency Factor", PurchaseHdr."Document Date"));
         UpdLandedCostLine.Validate("Currency Code", pPurchLine."Currency Code");
         UpdLandedCostLine.Validate("Currency Factor", PurchaseHdr."Currency Factor");
         if UpdLandedCostLine."Currency Code" = '' then
@@ -205,7 +208,7 @@ codeunit 66000 "Landed Cost Mgt."
             //Amount per qty on line
             UpdLandedCostLine."Unit Cost (LCY)" := CostMatrix.Value;
             UpdLandedCostLine."Amount (LCY)" := Round(pPurchLine.Quantity * CostMatrix.Value);
-            UpdLandedCostLine."Unit Cost" := ConvertCurrency(UpdLandedCostLine."Currency Code", UpdLandedCostLine."Unit Cost (LCY)", UpdLandedCostLine."Currency Factor");
+            UpdLandedCostLine."Unit Cost" := ConvertCurrency(UpdLandedCostLine."Currency Code", UpdLandedCostLine."Unit Cost (LCY)", UpdLandedCostLine."Currency Factor", PurchaseHdr."Document Date");
         end;
         if CostMatrix."Value Type" = CostMatrix."Value Type"::Percentage then begin
             //% Value of line
@@ -223,7 +226,7 @@ codeunit 66000 "Landed Cost Mgt."
             if pPurchLine.Quantity <> 0 then begin
                 UpdLandedCostLine."Unit Cost (LCY)" := CostMatrix.Value;
                 UpdLandedCostLine."Amount (LCY)" := Round(CostMatrix.Value / pPurchLine.Quantity);
-                UpdLandedCostLine."Unit Cost" := ConvertCurrency(UpdLandedCostLine."Currency Code", UpdLandedCostLine."Unit Cost (LCY)", UpdLandedCostLine."Currency Factor");
+                UpdLandedCostLine."Unit Cost" := ConvertCurrency(UpdLandedCostLine."Currency Code", UpdLandedCostLine."Unit Cost (LCY)", UpdLandedCostLine."Currency Factor", PurchaseHdr."Document Date");
             end else begin
                 UpdLandedCostLine.Validate("Amount (LCY)", 0);
                 UpdLandedCostLine.Validate("Unit Cost (LCY)", 0);
@@ -477,7 +480,10 @@ codeunit 66000 "Landed Cost Mgt."
         UpdLandedCostLine.Validate("Variant Code", pSalesLine."Variant Code");
         UpdLandedCostLine.Description := pItemCharge.Description;
         UpdLandedCostLine.Validate("Value Type", CostMatrix."Value Type");
-        UpdLandedCostLine.Validate(Value, CostMatrix.Value);
+        if pSalesLine."Currency Code" = CostMatrix."Currency Code" then
+            UpdLandedCostLine.Validate(Value, CostMatrix.Value)
+        else
+            UpdLandedCostLine.Validate(Value, ConvertCurrency(pSalesLine."Currency Code", CostMatrix.Value, SalesHdr."Currency Factor", SalesHdr."Document Date"));
         UpdLandedCostLine.Validate("Currency Code", pSalesLine."Currency Code");
         UpdLandedCostLine.Validate("Currency Factor", SalesHdr."Currency Factor");
         if UpdLandedCostLine."Currency Code" = '' then
@@ -486,7 +492,7 @@ codeunit 66000 "Landed Cost Mgt."
             //Amount per qty on line
             UpdLandedCostLine."Unit Cost (LCY)" := CostMatrix.Value;
             UpdLandedCostLine."Amount (LCY)" := Round(pSalesLine.Quantity * CostMatrix.Value);
-            UpdLandedCostLine."Unit Cost" := ConvertCurrency(UpdLandedCostLine."Currency Code", UpdLandedCostLine."Unit Cost (LCY)", UpdLandedCostLine."Currency Factor");
+            UpdLandedCostLine."Unit Cost" := ConvertCurrency(UpdLandedCostLine."Currency Code", UpdLandedCostLine."Unit Cost (LCY)", UpdLandedCostLine."Currency Factor", SalesHdr."Document Date");
         end;
         if CostMatrix."Value Type" = CostMatrix."Value Type"::Percentage then begin
             //% Value of line
@@ -500,7 +506,7 @@ codeunit 66000 "Landed Cost Mgt."
                 UpdLandedCostLine."Amount (LCY)" := (pSalesLine.Amount / UpdLandedCostLine."Currency Factor") + CostMatrix.Value;
                 UpdLandedCostLine.Validate("Amount (LCY)", Round(UpdLandedCostLine."Amount (LCY)"));
                 UpdLandedCostLine.Validate("Unit Cost (LCY)", UpdLandedCostLine."Amount (LCY)" / pSalesLine.Quantity);
-                UpdLandedCostLine."Unit Cost" := ConvertCurrency(UpdLandedCostLine."Currency Code", UpdLandedCostLine."Unit Cost (LCY)", UpdLandedCostLine."Currency Factor");
+                UpdLandedCostLine."Unit Cost" := ConvertCurrency(UpdLandedCostLine."Currency Code", UpdLandedCostLine."Unit Cost (LCY)", UpdLandedCostLine."Currency Factor", SalesHdr."Document Date");
             end else begin
                 UpdLandedCostLine.Validate("Amount (LCY)", 0);
                 UpdLandedCostLine.Validate("Unit Cost (LCY)", 0);
@@ -1069,7 +1075,7 @@ codeunit 66000 "Landed Cost Mgt."
         end;
     end;
 
-    procedure ConvertCurrency(p_CurrentCurrencyCode: code[20]; p_UnitCostLCY: decimal; p_CurrencyFactor: decimal): decimal
+    procedure ConvertCurrency(p_CurrentCurrencyCode: code[20]; p_UnitCostLCY: decimal; p_CurrencyFactor: decimal; p_DocumentDate: date): decimal
     var
         Currency: record Currency;
         CurrExchRate: record "Currency Exchange Rate";
@@ -1079,7 +1085,7 @@ codeunit 66000 "Landed Cost Mgt."
         IF p_CurrentCurrencyCode <> '' then begin
             Currency.get(p_CurrentCurrencyCode);
             Currency.TESTFIELD("Unit-Amount Rounding Precision");
-            p_UnitCostLCY := ROUND(CurrExchRate.ExchangeAmtLCYToFCY(WorkDate(), Currency.Code, p_UnitCostLCY, p_CurrencyFactor), Currency."Unit-Amount Rounding Precision");
+            UnitCostToExit := ROUND(CurrExchRate.ExchangeAmtLCYToFCY(p_DocumentDate, Currency.Code, p_UnitCostLCY, p_CurrencyFactor), Currency."Unit-Amount Rounding Precision");
         end else
             UnitCostToExit := p_UnitCostLCY;
         exit(UnitCostToExit);

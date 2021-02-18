@@ -69,7 +69,11 @@ page 66002 "Landed Cost Matrix"
                 field("Currency Code"; Rec."Currency Code")
                 {
                     ApplicationArea = All;
-                    Enabled = ValueTypeEligable;
+                    trigger OnValidate()
+                    begin
+                        if Rec."Value Type" = "Value Type"::Percentage then
+                            error('You can not use Currencies when %1 is %2', Rec.FieldCaption("Value Type"), format("Value Type"::Percentage));
+                    end;
                 }
                 field(Boxed; Rec.Boxed)
                 {

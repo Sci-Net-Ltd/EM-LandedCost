@@ -25,3 +25,5 @@ LandedCost, 15/01/2021 - 17/01/2021
 --Add new field in page 66002 "Landed Cost Matrix" and enabled only if not Value Type = Percentage.
 LandedCost, 18/01/2021
 --Fix to show the breakdown of the landed cost in purchase order lines, in the correct currency/conversion.
+LandedCost, 22/01/2021
+--Bug Fix in codeunit 66000 "Landed Cost Mgt."

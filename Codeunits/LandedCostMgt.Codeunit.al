@@ -196,19 +196,23 @@ codeunit 66000 "Landed Cost Mgt."
         UpdLandedCostLine.Validate("Variant Code", pPurchLine."Variant Code");
         UpdLandedCostLine.Description := pItemCharge.Description;
         UpdLandedCostLine.Validate("Value Type", CostMatrix."Value Type");
-        if pPurchLine."Currency Code" = CostMatrix."Currency Code" then
+        if CostMatrix."Value Type" = CostMatrix."Value Type"::Percentage then
             UpdLandedCostLine.Validate(Value, CostMatrix.Value)
-        else
-            UpdLandedCostLine.Validate(Value, ConvertCurrency(pPurchLine."Currency Code", CostMatrix.Value, PurchaseHdr."Currency Factor", PurchaseHdr."Document Date"));
+        else begin
+            if pPurchLine."Currency Code" = CostMatrix."Currency Code" then
+                UpdLandedCostLine.Validate(Value, CostMatrix.Value)
+            else
+                UpdLandedCostLine.Validate(Value, ConvertCurrency(CostMatrix."Currency Code", pPurchLine."Currency Code", CostMatrix.Value, PurchaseHdr."Document Date", PurchaseHdr."Currency Factor"));
+        end;
         UpdLandedCostLine.Validate("Currency Code", pPurchLine."Currency Code");
         UpdLandedCostLine.Validate("Currency Factor", PurchaseHdr."Currency Factor");
         if UpdLandedCostLine."Currency Code" = '' then
             UpdLandedCostLine.Validate("Currency Factor", 1);
         if CostMatrix."Value Type" = CostMatrix."Value Type"::Amount then begin
             //Amount per qty on line
-            UpdLandedCostLine."Unit Cost (LCY)" := CostMatrix.Value;
+            UpdLandedCostLine."Unit Cost (LCY)" := ConvertCurrency(CostMatrix."Currency Code", pPurchLine."Currency Code", CostMatrix.Value, PurchaseHdr."Document Date", PurchaseHdr."Currency Factor");
             UpdLandedCostLine."Amount (LCY)" := Round(pPurchLine.Quantity * CostMatrix.Value);
-            UpdLandedCostLine."Unit Cost" := ConvertCurrency(UpdLandedCostLine."Currency Code", UpdLandedCostLine."Unit Cost (LCY)", UpdLandedCostLine."Currency Factor", PurchaseHdr."Document Date");
+            UpdLandedCostLine."Unit Cost" := CostMatrix.Value;
         end;
         if CostMatrix."Value Type" = CostMatrix."Value Type"::Percentage then begin
             //% Value of line
@@ -224,9 +228,9 @@ codeunit 66000 "Landed Cost Mgt."
         //Alexnir.SN
         if CostMatrix."Value Type" = CostMatrix."Value Type"::"Fixed Amount" then begin
             if pPurchLine.Quantity <> 0 then begin
-                UpdLandedCostLine."Unit Cost (LCY)" := CostMatrix.Value;
-                UpdLandedCostLine."Amount (LCY)" := Round(CostMatrix.Value / pPurchLine.Quantity);
-                UpdLandedCostLine."Unit Cost" := ConvertCurrency(UpdLandedCostLine."Currency Code", UpdLandedCostLine."Unit Cost (LCY)", UpdLandedCostLine."Currency Factor", PurchaseHdr."Document Date");
+                UpdLandedCostLine."Unit Cost (LCY)" := ConvertCurrency(CostMatrix."Currency Code", pPurchLine."Currency Code", CostMatrix.Value, PurchaseHdr."Document Date", PurchaseHdr."Currency Factor") / pPurchLine.Quantity;
+                UpdLandedCostLine."Amount (LCY)" := Round(CostMatrix.Value);
+                UpdLandedCostLine."Unit Cost" := UpdLandedCostLine.Value / pPurchLine.Quantity;
             end else begin
                 UpdLandedCostLine.Validate("Amount (LCY)", 0);
                 UpdLandedCostLine.Validate("Unit Cost (LCY)", 0);
@@ -483,7 +487,7 @@ codeunit 66000 "Landed Cost Mgt."
         if pSalesLine."Currency Code" = CostMatrix."Currency Code" then
             UpdLandedCostLine.Validate(Value, CostMatrix.Value)
         else
-            UpdLandedCostLine.Validate(Value, ConvertCurrency(pSalesLine."Currency Code", CostMatrix.Value, SalesHdr."Currency Factor", SalesHdr."Document Date"));
+            UpdLandedCostLine.Validate(Value, ConvertCurrency(CostMatrix."Currency Code", pSalesLine."Currency Code", CostMatrix.Value, SalesHdr."Document Date", SalesHdr."Currency Factor"));
         UpdLandedCostLine.Validate("Currency Code", pSalesLine."Currency Code");
         UpdLandedCostLine.Validate("Currency Factor", SalesHdr."Currency Factor");
         if UpdLandedCostLine."Currency Code" = '' then
@@ -492,7 +496,7 @@ codeunit 66000 "Landed Cost Mgt."
             //Amount per qty on line
             UpdLandedCostLine."Unit Cost (LCY)" := CostMatrix.Value;
             UpdLandedCostLine."Amount (LCY)" := Round(pSalesLine.Quantity * CostMatrix.Value);
-            UpdLandedCostLine."Unit Cost" := ConvertCurrency(UpdLandedCostLine."Currency Code", UpdLandedCostLine."Unit Cost (LCY)", UpdLandedCostLine."Currency Factor", SalesHdr."Document Date");
+            UpdLandedCostLine."Unit Cost" := ConvertCurrency(CostMatrix."Currency Code", pSalesLine."Currency Code", CostMatrix.Value, SalesHdr."Document Date", SalesHdr."Currency Factor");
         end;
         if CostMatrix."Value Type" = CostMatrix."Value Type"::Percentage then begin
             //% Value of line
@@ -505,8 +509,8 @@ codeunit 66000 "Landed Cost Mgt."
             if pSalesLine.Quantity <> 0 then begin
                 UpdLandedCostLine."Amount (LCY)" := (pSalesLine.Amount / UpdLandedCostLine."Currency Factor") + CostMatrix.Value;
                 UpdLandedCostLine.Validate("Amount (LCY)", Round(UpdLandedCostLine."Amount (LCY)"));
-                UpdLandedCostLine.Validate("Unit Cost (LCY)", UpdLandedCostLine."Amount (LCY)" / pSalesLine.Quantity);
-                UpdLandedCostLine."Unit Cost" := ConvertCurrency(UpdLandedCostLine."Currency Code", UpdLandedCostLine."Unit Cost (LCY)", UpdLandedCostLine."Currency Factor", SalesHdr."Document Date");
+                UpdLandedCostLine.Validate("Unit Cost (LCY)", UpdLandedCostLine."Amount (LCY)");
+                UpdLandedCostLine."Unit Cost" := ConvertCurrency(CostMatrix."Currency Code", pSalesLine."Currency Code", CostMatrix.Value, SalesHdr."Document Date", SalesHdr."Currency Factor");
             end else begin
                 UpdLandedCostLine.Validate("Amount (LCY)", 0);
                 UpdLandedCostLine.Validate("Unit Cost (LCY)", 0);
@@ -1075,19 +1079,36 @@ codeunit 66000 "Landed Cost Mgt."
         end;
     end;
 
-    procedure ConvertCurrency(p_CurrentCurrencyCode: code[20]; p_UnitCostLCY: decimal; p_CurrencyFactor: decimal; p_DocumentDate: date): decimal
+    procedure ConvertCurrency(p_FromCurr: code[20]; p_ToCurr: code[20]; p_LineValue: decimal; p_DocumentDate: date; p_Factor: decimal): decimal
     var
         Currency: record Currency;
         CurrExchRate: record "Currency Exchange Rate";
+        GenLedgSetup: record "General Ledger Setup";
         UnitCostToExit: decimal;
     begin
         UnitCostToExit := 0;
-        IF p_CurrentCurrencyCode <> '' then begin
-            Currency.get(p_CurrentCurrencyCode);
+        GenLedgSetup.Get();
+        if (p_FromCurr = '') and (p_ToCurr <> '') then begin
+            Currency.Get(p_ToCurr);
             Currency.TESTFIELD("Unit-Amount Rounding Precision");
-            UnitCostToExit := ROUND(CurrExchRate.ExchangeAmtLCYToFCY(p_DocumentDate, Currency.Code, p_UnitCostLCY, p_CurrencyFactor), Currency."Unit-Amount Rounding Precision");
-        end else
-            UnitCostToExit := p_UnitCostLCY;
+            UnitCostToExit := ROUND(CurrExchRate.ExchangeAmtLCYToFCY(p_DocumentDate, Currency.Code, p_LineValue, p_Factor));
+        end;
+
+        if (p_FromCurr <> '') and (p_ToCurr = '') then begin
+            Currency.Get(p_ToCurr);
+            Currency.TESTFIELD("Unit-Amount Rounding Precision");
+            UnitCostToExit := ROUND(CurrExchRate.ExchangeAmtFCYToLCY(p_DocumentDate, Currency.Code, p_LineValue, p_Factor));
+        end;
+
+        if (p_FromCurr <> '') and (p_ToCurr <> '') then begin
+            Currency.get(p_FromCurr);
+            Currency.TESTFIELD("Unit-Amount Rounding Precision");
+            UnitCostToExit := ROUND(CurrExchRate.ExchangeAmtFCYToFCY(p_DocumentDate, p_FromCurr, p_ToCurr, p_LineValue));
+        end;
+
+        if (p_FromCurr = '') and (p_ToCurr = '') then
+            UnitCostToExit := p_LineValue;
+
         exit(UnitCostToExit);
     end;
 

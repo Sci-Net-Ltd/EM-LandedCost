@@ -290,8 +290,9 @@ codeunit 66000 "Landed Cost Mgt."
             CalcFields("Det. Landed Cost (LCY)");
             //bug fix. During the deletion of a line
             //std system empties the Quantity field prior to the code below and that causes an division by zero error
-            //if ("Outstanding Quantity" <> 0) and (Quantity <> 0) then
-            if ("Outstanding Quantity" <> 0) then
+            if ("Outstanding Quantity" <> 0) and (Quantity <> 0) then
+                //the problem re-appeared therefore the above line is back on the game.
+                //if ("Outstanding Quantity" <> 0) then
                 "Landed Cost (LCY)" := Round(("Outstanding Quantity" / Quantity) * "Det. Landed Cost (LCY)", Currency2."Amount Rounding Precision")
             else
                 "Landed Cost (LCY)" := 0;

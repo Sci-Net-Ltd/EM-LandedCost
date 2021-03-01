@@ -27,3 +27,5 @@ LandedCost, 18/01/2021
 --Fix to show the breakdown of the landed cost in purchase order lines, in the correct currency/conversion.
 LandedCost, 22/01/2021
 --Bug Fix in codeunit 66000 "Landed Cost Mgt."
+LandedCost, 01/03/2021
+--Bug Fix in codeunit 66000 "Landed Cost Mgt."

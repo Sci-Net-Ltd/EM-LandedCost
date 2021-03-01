@@ -20,7 +20,6 @@
     ]
 }
 */
-
 {
     "version": "0.2.0",
     "configurations": [
@@ -36,7 +35,7 @@
             "enableLongRunningSqlStatements": true,
             "enableSqlInformationDebugger": true,
             "tenant": "default",
-            "port": 7249,
+            "port": 7049,
             "schemaUpdateMode": "ForceSync"
         }
     ]
